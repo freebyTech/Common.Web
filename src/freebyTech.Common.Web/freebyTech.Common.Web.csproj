@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Product>freebyTech Common Web Libary</Product>
+    <Authors>James Eby</Authors>
+    <Company>freebyTech LLC</Company>
+    <Copyright>Copyright © 2019</Copyright>
+
+    <!-- FileVersion could also be set seperately, 
+    otherwise this is used by for product version 
+    and also for nuget version as well. -->
+    <Version Condition=" '$(BUILD_VERSION)' == '' ">0.1.0.0</Version>
+    <Version Condition=" '$(BUILD_VERSION)' != '' ">$(BUILD_VERSION)</Version>
+
+    <!-- NuGet Package ID -->
+    <PackageId>freebyTech.Common.Web</PackageId>
+    <PackageId Condition=" '$(PACKAGE_ID)' == '' ">freebyTech.Common.Web.Local</PackageId>
+    <PackageId Condition=" '$(PACKAGE_ID)' != '' ">$(PACKAGE_ID)</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.2" />
+  </ItemGroup>
+
+  </Project>
