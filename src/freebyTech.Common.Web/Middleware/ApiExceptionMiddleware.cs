@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using freebyTech.Common.Web.Exceptions;
+using freebyTech.Common.Web.Logging.Interfaces;
 using freebyTech.Common.Web.Models;
 
 namespace freebyTech.Common.Web.Middleware
@@ -10,9 +12,9 @@ namespace freebyTech.Common.Web.Middleware
     public class ApiExceptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger _logger;
+        private readonly IApiRequestLogger _logger;
 
-        public ApiExceptionMiddleware(RequestDelegate next, ILogger logger)
+        public ApiExceptionMiddleware(RequestDelegate next, IApiRequestLogger logger)
         {
             _logger = logger;
             _next = next;
@@ -24,27 +26,28 @@ namespace freebyTech.Common.Web.Middleware
             {
                 await _next(httpContext);
             }
-            catch (WebException wex)
+            catch (WebRequestException wre)
             {
-                _logger.LogError($"WebException: {wex}");
-                await HandleExceptionAsync(httpContext, wex);
+                _logger.PushCaughtException(wre);
+
+                await HandleExceptionAsync(httpContext, wre.ResponseStatusCode, wre.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Exception: {ex}");
-                await HandleExceptionAsync(httpContext, null);
+                _logger.PushCaughtException(ex);
+                await HandleExceptionAsync(httpContext, (int)HttpStatusCode.InternalServerError, "Internal Server Error");
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private static Task HandleExceptionAsync(HttpContext context, int statusCode, string message)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = statusCode;
 
             return context.Response.WriteAsync(new JsonWebErrorResponse()
             {
                 StatusCode = context.Response.StatusCode,
-                Message = exception == null ? "Internal Server Error." : exception.Message
+                Message = message
             }.ToString());
         }
     }
