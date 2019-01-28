@@ -13,17 +13,17 @@ namespace freebyTech.Common.Web.ExtensionMethods
                 await next();
             });
         }
-        public static void ConfigureApiExceptionMiddleware(this IApplicationBuilder app)
+        public static void UseApiExceptionMiddleware(this IApplicationBuilder app)
         {
             app.UseMiddleware<ApiExceptionMiddleware>();
         }
 
-        public static void ConfigureApiRequestLoggingMiddleware(this IApplicationBuilder app)
+        public static void UseApiRequestLoggingMiddleware(this IApplicationBuilder app)
         {
             app.UseMiddleware<ApiRequestLoggingMiddleware>();
         }
 
-        public static void ConfigureStandardApiMiddlware(this IApplicationBuilder app)
+        public static void UseStandardApiMiddleware(this IApplicationBuilder app)
         {
             app.EnableRequestBuffering();
             app.UseMiddleware<ApiExceptionMiddleware>();
