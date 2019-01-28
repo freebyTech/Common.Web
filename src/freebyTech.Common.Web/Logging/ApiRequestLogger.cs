@@ -125,8 +125,11 @@ namespace freebyTech.Common.Web.Logging
             logEvent.Properties["response"] = Response.ToString();
             logEvent.Properties["executionTimeMS"] = ExecutionTime;
             logEvent.Properties["executionTimeMinutes"] = ExecutionTimeMinutes;
-            // TODO: Needs to be more verbose.
-            logEvent.Properties["caughtException"] = CaugthException.ToString();
+            if(CaugthException != null) {
+                // TODO: Needs to be more verbose.
+                logEvent.Properties["caughtException"] = CaugthException.ToString();
+            }
+            
             SetDerivedClassCustomProperties(logEvent);
         }
 
