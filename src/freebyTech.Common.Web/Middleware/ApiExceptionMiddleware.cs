@@ -12,15 +12,13 @@ namespace freebyTech.Common.Web.Middleware
     public class ApiExceptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IApiRequestLogger _logger;
-
-        public ApiExceptionMiddleware(RequestDelegate next, IApiRequestLogger logger)
+        
+        public ApiExceptionMiddleware(RequestDelegate next)
         {
-            _logger = logger;
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext, IApiRequestLogger logger)
         {
             try
             {
@@ -28,13 +26,13 @@ namespace freebyTech.Common.Web.Middleware
             }
             catch (WebRequestException wre)
             {
-                _logger.PushCaughtException(wre);
+                logger.PushCaughtException(wre);
 
                 await HandleExceptionAsync(httpContext, wre.ResponseStatusCode, wre.Message);
             }
             catch (Exception ex)
             {
-                _logger.PushCaughtException(ex);
+                logger.PushCaughtException(ex);
                 await HandleExceptionAsync(httpContext, (int)HttpStatusCode.InternalServerError, "Internal Server Error");
             }
         }

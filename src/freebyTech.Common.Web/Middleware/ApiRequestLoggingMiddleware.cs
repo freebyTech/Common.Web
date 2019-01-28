@@ -12,17 +12,15 @@ namespace freebyTech.Common.Web.Middleware
     public class ApiRequestLoggingMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IApiRequestLogger _logger;
 
-        public ApiRequestLoggingMiddleware(RequestDelegate next, IApiRequestLogger logger)
+        public ApiRequestLoggingMiddleware(RequestDelegate next)
         {
             _next = next;
-            _logger = logger;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context, IApiRequestLogger logger)
         {
-            await _logger.PushRequestAsync(context);
+            await logger.PushRequestAsync(context);
 
             var originalBodyStream = context.Response.Body;
 
@@ -34,7 +32,7 @@ namespace freebyTech.Common.Web.Middleware
 
                     await _next(context);
 
-                    await _logger.PushResponseAsync(context, tempResponseBody);
+                    await logger.PushResponseAsync(context, tempResponseBody);
                     await tempResponseBody.CopyToAsync(originalBodyStream);
                 }
             }
@@ -42,7 +40,7 @@ namespace freebyTech.Common.Web.Middleware
             {
                 context.Response.Body = originalBodyStream;
             }
-            _logger.LogRequestComplete();
+            logger.LogRequestComplete();
         }
     }
 }
