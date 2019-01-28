@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using freebyTech.Common.Logging.Interfaces;
+using freebyTech.Common.Web.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace freebyTech.Common.Web.Logging.Interfaces

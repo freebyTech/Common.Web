@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace freebyTech.Common.Web.Logging.Interfaces
+namespace freebyTech.Common.Web.Models
 {
     public class ResponseModel
     {

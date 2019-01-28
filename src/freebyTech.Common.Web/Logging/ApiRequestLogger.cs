@@ -9,6 +9,7 @@ using freebyTech.Common.ExtensionMethods;
 using freebyTech.Common.Logging;
 using freebyTech.Common.Logging.Interfaces;
 using freebyTech.Common.Web.Logging.Interfaces;
+using freebyTech.Common.Web.Models;
 using Microsoft.AspNetCore.Http;
 using NLog;
 

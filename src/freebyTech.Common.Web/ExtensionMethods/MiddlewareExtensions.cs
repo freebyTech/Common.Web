@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using freebyTech.Common.Web.Middleware;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
-namespace freebyTech.Common.Web.Middleware
+namespace freebyTech.Common.Web.ExtensionMethods
 {
     public static class MiddlewareExtensions
     {
