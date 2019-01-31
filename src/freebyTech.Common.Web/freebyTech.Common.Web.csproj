@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="freebytech.common" Version="1.1.7.127" />
+    <PackageReference Include="freebytech.common" Version="1.1.11.131" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.2" />
   </ItemGroup>
 

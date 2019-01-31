@@ -40,7 +40,7 @@ namespace freebyTech.Common.Web.Middleware
             {
                 context.Response.Body = originalBodyStream;
             }
-            logger.LogRequestComplete();
+            logger.LogCompletedRequest();
         }
     }
 }

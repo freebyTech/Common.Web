@@ -13,15 +13,11 @@ namespace freebyTech.Common.Web.Logging.Interfaces
     public interface IApiRequestLogger : IBasicLogger
     {
         #region Request Response Properties
-
-        Guid UniqueReguestId { get; }
         RequestModel Request { get; }
         ResponseModel Response { get; }
         Exception CaugthException { get; }
 
         #endregion
-
-        Stopwatch SW { get; }
 
         /// <summary>
         /// Pushes all the information of the request into the log queue.
@@ -42,15 +38,6 @@ namespace freebyTech.Common.Web.Logging.Interfaces
         /// <param name="responseBody"></param>
         Task PushResponseAsync(HttpContext context, MemoryStream responseBody);
 
-        void PushInfoWithTime(string message);
-        void PushInfoWithTime(string key, string value);
-
-        void PushWarnWithTime(string message);
-        void PushWarnWithTime(string key, string value);
-        
-        void PushErrorWithTime(string message);
-        void PushErrorWithTime(string key, string value);
-
-        void LogRequestComplete();
+        void LogCompletedRequest();
     }
 }

@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using freebyTech.Common.ExtensionMethods;
-using freebyTech.Common.Logging;
+using freebyTech.Common.Logging.Core;
 using freebyTech.Common.Logging.Interfaces;
 using freebyTech.Common.Web.Logging.Interfaces;
 using freebyTech.Common.Web.Models;
@@ -18,28 +18,23 @@ namespace freebyTech.Common.Web.Logging
     /// <summary>
     /// This is the logger used in the pipeline for API requests, it has request level scope so it is 
     /// </summary>
-    public class ApiRequestLogger : LoggingBase, IApiRequestLogger
+    public class ApiRequestLogger : LoggerBase, IApiRequestLogger
     {
-        public ApiRequestLogger(Assembly parentApplication, string applicationLoggingId) : base(parentApplication,
-            LoggingMessageTypes.RequestResponse.ToString(), applicationLoggingId)
+        public ApiRequestLogger(Assembly parentApplication, string applicationLoggingId, ILogFrameworkAgent frameworkLogger) : base(parentApplication,
+            LoggingMessageTypes.RequestResponse.ToString(), applicationLoggingId, frameworkLogger) 
         {
-            // Construction of this logger is about the earliest we can get in the request lifetime.
-            SW = Stopwatch.StartNew();
+            LogDurationInPushes = true;
         }
+
+        private long ExecutionTime { get; set; }
         
-        public long ExecutionTime { get; protected set; }
-        public double ExecutionTimeMinutes { get; protected set; }
-
-        public Stopwatch SW { get;  }
-
-        public Guid UniqueReguestId { get; } = Guid.NewGuid();
+        private double ExecutionTimeMinutes { get; set; }
 
         public RequestModel Request { get; } = new RequestModel();
 
         public ResponseModel Response { get; } = new ResponseModel();
 
         public Exception CaugthException { get; protected set;  } = null;
-
         public async Task PushRequestAsync(HttpContext context)
         {
             Request.Scheme = context.Request.Scheme;
@@ -70,75 +65,40 @@ namespace freebyTech.Common.Web.Logging
             CaugthException = exception;
         }
 
-        public void LogRequestComplete()
+        public void LogCompletedRequest()
         {
-            SW.Stop();
-
-            ExecutionTime = SW.ElapsedMilliseconds;
-            ExecutionTimeMinutes = SW.Elapsed.TotalMinutes;
+            var duration = GetDuration();
+            ExecutionTime = duration.Ms;
+            ExecutionTimeMinutes = duration.Minutes;
 
             if (CaugthException != null)
             {
-                LogError("Request Completed with Exception");
+                LogError("Request {Request.Verb} {Request.Path} Completed with Exception", CaugthException);
             }
             else
             {
-                LogInfo("Request Complete");
+                LogInfo("Request {Request.Verb} {Request.Path}  Complete");
             }
         }
         
-        public void PushInfoWithTime(string message)
-        {
-            PushInfo(SW.AddTimeToMessage(message));
-        }
-
-        public void PushInfoWithTime(string key, string value)
-        {
-            PushInfo(key, SW.AddTimeToMessage(value));
-        }
-
-        public void PushWarnWithTime(string message)
-        {
-            PushWarn(SW.AddTimeToMessage(message));
-        }
-
-        public void PushWarnWithTime(string key, string value)
-        {
-            PushWarn(key, SW.AddTimeToMessage(value));
-        }
-
-        public void PushErrorWithTime(string message)
-        {
-            PushError(SW.AddTimeToMessage(message));
-        }
-
-        public void PushErrorWithTime(string key, string value)
-        {
-            PushError(key, SW.AddTimeToMessage(value));
-        }
-
         #region Override Methods
 
-        protected sealed override void SetCustomProperties(LogEventInfo logEvent)
+        protected sealed override void SetCustomProperties(Dictionary<string, object> customProperties)
         {
-            logEvent.Properties["request"] = Request.ToString();
-            logEvent.Properties["response"] = Response.ToString();
-            logEvent.Properties["executionTimeMS"] = ExecutionTime;
-            logEvent.Properties["executionTimeMinutes"] = ExecutionTimeMinutes;
-            if(CaugthException != null) {
-                // TODO: Needs to be more verbose.
-                logEvent.Properties["caughtException"] = CaugthException.ToString();
-            }
-            
-            SetDerivedClassCustomProperties(logEvent);
+            customProperties["request"] = Request.ToString();
+            customProperties["response"] = Response.ToString();
+            customProperties["executionTimeMS"] = ExecutionTime;
+            customProperties["executionTimeMinutes"] = ExecutionTimeMinutes;
+            if(!Activity.Current.Id.IsNullOrEmpty()) customProperties["activityId"] = Activity.Current.Id;
+            if(!Activity.Current.ParentId.IsNullOrEmpty()) customProperties["parentActivityId"] = Activity.Current.ParentId;
+            SetDerivedClassCustomProperties(customProperties);
         }
 
         /// <summary>
         /// If implementing a logger on top of this logger you should set your custom properties here rather 
         /// than in SetCustomProperties which is already being used by this class.
         /// </summary>
-        /// <param name="logEvent"></param>
-        protected virtual void SetDerivedClassCustomProperties(LogEventInfo logEvent)
+        protected virtual void SetDerivedClassCustomProperties(Dictionary<string, object> customProperties)
         {
 
         }
