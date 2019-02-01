@@ -93,11 +93,11 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
             if (CaugthException != null)
             {
-                LogError("Request {Request.Verb} {Request.Path} Completed with Exception", CaugthException);
+                LogError("Request {Verb} {Path} Completed with Exception", CaugthException);
             }
             else
             {
-                LogInfo("Request {Request.Verb} {Request.Path}  Complete");
+                LogInfo("Request {Verb} {Path}  Complete");
             }
         }
         

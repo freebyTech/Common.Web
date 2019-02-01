@@ -8,6 +8,7 @@ using Serilog;
 using freebyTech.Common.Web.Logging.Converters;
 using Microsoft.ApplicationInsights.Channel;
 using Serilog.Events;
+using System;
 
 namespace freebyTech.Common.Web.ExtensionMethods
 {
@@ -27,9 +28,9 @@ namespace freebyTech.Common.Web.ExtensionMethods
             });
         }
 
-        // public static LoggerConfiguration ApplicationInsightsWithStandardLoggers(this LoggerSinkConfiguration sinkConfiguration, string appInsightsInstrumentationkey)
-        // {
-        //     return sinkConfiguration.ApplicationInsights(appInsightsInstrumentationkey, LogEventConverters.ConvertLogEventsToEventTelemetryWithContext);
-        // }
+        public static LoggerConfiguration ApplicationInsightsWithStandardLoggers(this LoggerSinkConfiguration sinkConfiguration, string appInsightsInstrumentationkey)
+        {
+            return sinkConfiguration.ApplicationInsights(appInsightsInstrumentationkey, (Func < LogEvent, IFormatProvider, ITelemetry > )LogEventConverters.ConvertLogEventsToEventTelemetryWithContext);
+        }
     }
 }
