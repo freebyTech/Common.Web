@@ -2,7 +2,12 @@
 using System.Reflection;
 using freebyTech.Common.Logging.Interfaces;
 using freebyTech.Common.Web.Logging.Interfaces;
-using freebyTech.Common.Web.Logging;
+using freebyTech.Common.Web.Logging.LoggerTypes;
+using Serilog.Configuration;
+using Serilog;
+using freebyTech.Common.Web.Logging.Converters;
+using Microsoft.ApplicationInsights.Channel;
+using Serilog.Events;
 
 namespace freebyTech.Common.Web.ExtensionMethods
 {
@@ -21,5 +26,10 @@ namespace freebyTech.Common.Web.ExtensionMethods
                 return new ApiRequestLogger(parentApplication, applicationLogginId, serviceProvider.GetService<ILogFrameworkAgent>());
             });
         }
+
+        // public static LoggerConfiguration ApplicationInsightsWithStandardLoggers(this LoggerSinkConfiguration sinkConfiguration, string appInsightsInstrumentationkey)
+        // {
+        //     return sinkConfiguration.ApplicationInsights(appInsightsInstrumentationkey, LogEventConverters.ConvertLogEventsToEventTelemetryWithContext);
+        // }
     }
 }

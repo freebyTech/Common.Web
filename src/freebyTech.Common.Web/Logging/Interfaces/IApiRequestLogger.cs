@@ -16,6 +16,11 @@ namespace freebyTech.Common.Web.Logging.Interfaces
         RequestModel Request { get; }
         ResponseModel Response { get; }
         Exception CaugthException { get; }
+        string ActivityId { get; set; }
+        string ParentActivityId { get; set; }
+        string UserId { get; set; }
+        long RequestExecutionTime { get; set; }
+        double RequestExecutionTimeMinutes { get; set; }
 
         #endregion
 

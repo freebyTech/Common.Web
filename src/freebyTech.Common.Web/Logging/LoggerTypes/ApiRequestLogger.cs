@@ -13,7 +13,7 @@ using freebyTech.Common.Web.Models;
 using Microsoft.AspNetCore.Http;
 using NLog;
 
-namespace freebyTech.Common.Web.Logging
+namespace freebyTech.Common.Web.Logging.LoggerTypes
 {
     /// <summary>
     /// This is the logger used in the pipeline for API requests, it has request level scope so it is 
@@ -26,17 +26,33 @@ namespace freebyTech.Common.Web.Logging
             LogDurationInPushes = true;
         }
 
-        private long ExecutionTime { get; set; }
+        private long PipelineExecutionTime { get; set; }
         
-        private double ExecutionTimeMinutes { get; set; }
+        private double PipelineExecutionTimeMinutes { get; set; }
 
         public RequestModel Request { get; } = new RequestModel();
 
         public ResponseModel Response { get; } = new ResponseModel();
 
         public Exception CaugthException { get; protected set;  } = null;
+
+        public string ActivityId { get; set; }
+
+        public string ParentActivityId { get; set; }
+
+        public string UserId { get; set; }
+
+        public long RequestExecutionTime { get; set; }
+
+        public double RequestExecutionTimeMinutes { get; set; }
+
         public async Task PushRequestAsync(HttpContext context)
         {
+            if(Activity.Current != null) {
+                if(!Activity.Current.Id.IsNullOrEmpty()) ActivityId = Activity.Current.Id;
+                if(!Activity.Current.ParentId.IsNullOrEmpty()) ParentActivityId = Activity.Current.ParentId;
+            }
+            Request.Method = context.Request.Method;
             Request.Scheme = context.Request.Scheme;
             Request.Host = context.Request.Host.ToString();
             Request.Path = context.Request.Path;
@@ -50,6 +66,10 @@ namespace freebyTech.Common.Web.Logging
 
         public async Task PushResponseAsync(HttpContext context, MemoryStream tempResponseBody)
         {
+            if(context.User != null) {
+                UserId = context.User.Identity?.Name;
+            }
+             
             Response.StatusCode = context.Response.StatusCode;
             // Status code of 204 is No Content.
             if (context.Response.StatusCode != 204)
@@ -68,8 +88,8 @@ namespace freebyTech.Common.Web.Logging
         public void LogCompletedRequest()
         {
             var duration = GetDuration();
-            ExecutionTime = duration.Ms;
-            ExecutionTimeMinutes = duration.Minutes;
+            RequestExecutionTime = duration.Ms;
+            RequestExecutionTimeMinutes = duration.Minutes;
 
             if (CaugthException != null)
             {
@@ -87,10 +107,17 @@ namespace freebyTech.Common.Web.Logging
         {
             customProperties["request"] = Request.ToString();
             customProperties["response"] = Response.ToString();
-            customProperties["executionTimeMS"] = ExecutionTime;
-            customProperties["executionTimeMinutes"] = ExecutionTimeMinutes;
-            if(!Activity.Current.Id.IsNullOrEmpty()) customProperties["activityId"] = Activity.Current.Id;
-            if(!Activity.Current.ParentId.IsNullOrEmpty()) customProperties["parentActivityId"] = Activity.Current.ParentId;
+            customProperties["requestExecutionTimeMS"] = RequestExecutionTime;
+            customProperties["requestExecutionTimeMinutes"] = RequestExecutionTimeMinutes;
+            if(!ActivityId.IsNullOrEmpty()) {
+                customProperties["activityId"] = ActivityId;
+            }
+            if(!ParentActivityId.IsNullOrEmpty()) {
+                customProperties["parentActivityId"] = ParentActivityId;
+            }
+            if(!UserId.IsNullOrEmpty()) {
+                customProperties["userId"] = UserId;
+            }            
             SetDerivedClassCustomProperties(customProperties);
         }
 
