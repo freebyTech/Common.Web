@@ -15,7 +15,7 @@ namespace freebyTech.Common.Web.Logging.Interfaces
         #region Request Response Properties
         RequestModel Request { get; }
         ResponseModel Response { get; }
-        Exception CaugthException { get; }
+        Exception CaughtException { get; }
         string ActivityId { get; set; }
         string ParentActivityId { get; set; }
         string UserId { get; set; }

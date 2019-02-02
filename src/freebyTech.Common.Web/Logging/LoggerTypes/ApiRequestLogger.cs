@@ -44,7 +44,7 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
         public ResponseModel Response { get; } = new ResponseModel();
 
-        public Exception CaugthException { get; protected set;  } = null;
+        public Exception CaughtException { get; protected set;  } = null;
 
         public string ActivityId { get; set; }
 
@@ -97,7 +97,7 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
         public void PushCaughtException(Exception exception)
         {
-            CaugthException = exception;
+            CaughtException = exception;
         }
 
         public void LogCompletedRequest()
@@ -106,13 +106,13 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
             RequestExecutionTime = duration.Ms;
             RequestExecutionTimeMinutes = duration.Minutes;
 
-            if (CaugthException != null)
+            if (CaughtException != null)
             {
-                LogError($"Request {Request.Method} to {Request.Path} Completed with Exception", CaugthException);
+                LogError($"Api Request {Request.Method} to {Request.Path} Failed with Exception", CaughtException);
             }
             else
             {
-                LogInfo($"Request {Request.Method} to {Request.Path} Complete");
+                LogInfo($"Api Request {Request.Method} to {Request.Path} Completed");
             }
         }
         
