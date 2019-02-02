@@ -57,7 +57,7 @@ namespace freebyTech.Common.Web.Logging.Converters
                 // Exception telemetry
                 return logEvent.ToDefaultExceptionTelemetry(
                     formatProvider,
-                    includeLogLevelAsProperty: true,
+                    includeLogLevelAsProperty: false,
                     includeRenderedMessageAsProperty: false,
                     includeMessageTemplateAsProperty: false);
             }
@@ -66,7 +66,7 @@ namespace freebyTech.Common.Web.Logging.Converters
                 // default telemetry
                 return logEvent.ToDefaultTraceTelemetry(
                     formatProvider,
-                    includeLogLevelAsProperty: true,
+                    includeLogLevelAsProperty: false,
                     includeRenderedMessageAsProperty: false,
                     includeMessageTemplateAsProperty: false);
             }
