@@ -18,13 +18,13 @@ namespace freebyTech.Common.Web.ExtensionMethods
     /// </summary>
     public static class ServiceRegistrationExtensions
     {
-        public static void AddApiLoggingServices(this IServiceCollection services, Assembly parentApplication, string applicationLogginId)
+        public static void AddApiLoggingServices(this IServiceCollection services, Assembly parentApplication, string applicationLogginId, ApiLogVerbosity apiLogVerbosity)
         {
             var serviceProvider = services.BuildServiceProvider();
 
             services.AddScoped<IApiRequestLogger, ApiRequestLogger>((ctx) =>
             {
-                return new ApiRequestLogger(parentApplication, applicationLogginId, serviceProvider.GetService<ILogFrameworkAgent>());
+                return new ApiRequestLogger(parentApplication, applicationLogginId, serviceProvider.GetService<ILogFrameworkAgent>(), apiLogVerbosity);
             });
         }
 

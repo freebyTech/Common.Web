@@ -15,15 +15,25 @@ using NLog;
 
 namespace freebyTech.Common.Web.Logging.LoggerTypes
 {
+    public enum ApiLogVerbosity
+    {
+        LogEverything,
+        LogMinimalRequest,
+        NoRequestResponse
+    }
+
     /// <summary>
     /// This is the logger used in the pipeline for API requests, it has request level scope so it is 
     /// </summary>
     public class ApiRequestLogger : LoggerBase, IApiRequestLogger
     {
-        public ApiRequestLogger(Assembly parentApplication, string applicationLoggingId, ILogFrameworkAgent frameworkLogger) : base(parentApplication,
+        private ApiLogVerbosity _apiLogVerbosity;
+
+        public ApiRequestLogger(Assembly parentApplication, string applicationLoggingId, ILogFrameworkAgent frameworkLogger, ApiLogVerbosity apiLogVerbosity) : base(parentApplication,
             LoggingMessageTypes.RequestResponse.ToString(), applicationLoggingId, frameworkLogger) 
         {
             LogDurationInPushes = true;
+            _apiLogVerbosity = apiLogVerbosity;
         }
 
         private long PipelineExecutionTime { get; set; }
@@ -52,16 +62,24 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
                 if(!Activity.Current.Id.IsNullOrEmpty()) ActivityId = Activity.Current.Id;
                 if(!Activity.Current.ParentId.IsNullOrEmpty()) ParentActivityId = Activity.Current.ParentId;
             }
-            Request.Method = context.Request.Method;
-            Request.Scheme = context.Request.Scheme;
-            Request.Host = context.Request.Host.ToString();
-            Request.Path = context.Request.Path;
+            
             Request.QueryString = context.Request.QueryString.ToString();
             // TODO: May need to upgrade with this in mind: https://stackoverflow.com/questions/28664686/how-do-i-get-client-ip-address-in-asp-net-core
             Request.RemoteIpAddress = context.Request.HttpContext?.Connection?.RemoteIpAddress.ToString();
 
-            Request.Body = await new StreamReader(context.Request.Body).ReadToEndAsync();
-            context.Request.Body.Position = 0;
+            if(_apiLogVerbosity == ApiLogVerbosity.LogEverything)
+            {
+                Request.Method = context.Request.Method;
+                Request.Scheme = context.Request.Scheme;
+                Request.Host = context.Request.Host.ToString();
+                Request.Path = context.Request.Path;
+            }
+
+            if(_apiLogVerbosity != ApiLogVerbosity.NoRequestResponse) 
+            {                
+                Request.Body = await new StreamReader(context.Request.Body).ReadToEndAsync();
+                context.Request.Body.Position = 0;
+            }            
         }
 
         public async Task PushResponseAsync(HttpContext context, MemoryStream tempResponseBody)
@@ -72,7 +90,7 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
              
             Response.StatusCode = context.Response.StatusCode;
             // Status code of 204 is No Content.
-            if (context.Response.StatusCode != 204)
+            if (context.Response.StatusCode != 204 && _apiLogVerbosity != ApiLogVerbosity.NoRequestResponse)
             {
                 tempResponseBody.Position = 0;
                 Response.Body = await new StreamReader(tempResponseBody).ReadToEndAsync();
@@ -105,15 +123,26 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
         protected sealed override void SetCustomProperties(Dictionary<string, object> customProperties)
         {
-            customProperties["request"] = Request.ToString();
-            customProperties["response"] = Response.ToString();
+            if(_apiLogVerbosity == ApiLogVerbosity.LogEverything)
+            {
+                customProperties["request"] = Request.ToString();
+                customProperties["response"] = Response.ToString();
+            }
+            else if(_apiLogVerbosity == ApiLogVerbosity.LogMinimalRequest)
+            {
+                customProperties["queryString"] = Request.QueryString;
+                customProperties["remoteIpAddress"] = Request.RemoteIpAddress;
+                customProperties["response"] = Response.ToString();
+            }
+
             customProperties["requestExecutionTimeMS"] = RequestExecutionTime;
             customProperties["requestExecutionTimeMinutes"] = RequestExecutionTimeMinutes;
+
             if(!ActivityId.IsNullOrEmpty()) {
-                customProperties["operationId"] = ActivityId;
+                customProperties["activityId"] = ActivityId;
             }
             if(!ParentActivityId.IsNullOrEmpty()) {
-                customProperties["parentOperationId"] = ParentActivityId;
+                customProperties["parentActivityId"] = ParentActivityId;
             }
             if(!UserId.IsNullOrEmpty()) {
                 customProperties["userId"] = UserId;
