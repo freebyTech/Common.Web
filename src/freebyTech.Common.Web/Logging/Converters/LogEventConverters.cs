@@ -80,7 +80,7 @@ namespace freebyTech.Common.Web.Logging.Converters
                 telemetry.Context.User.Id = logEvent.Properties["userId"].ToString();
             }
             // Post-process the telemetry's context to contain the operation id
-            if (logEvent.Properties.ContainsKey("activityId"))
+            if (logEvent.Properties.ContainsKey("RequestId"))
             {
                 telemetry.Context.Operation.Id = logEvent.Properties["activityId"].ToString();
             }

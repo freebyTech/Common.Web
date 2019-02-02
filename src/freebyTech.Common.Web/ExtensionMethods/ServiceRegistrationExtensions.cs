@@ -28,9 +28,14 @@ namespace freebyTech.Common.Web.ExtensionMethods
             });
         }
 
-        public static LoggerConfiguration ApplicationInsightsWithStandardLoggers(this LoggerSinkConfiguration sinkConfiguration, string appInsightsInstrumentationkey)
+        public static LoggerConfiguration ApplicationInsightsWithStandardLoggersForEventTelemetry(this LoggerSinkConfiguration sinkConfiguration, string appInsightsInstrumentationkey)
         {
             return sinkConfiguration.ApplicationInsights(appInsightsInstrumentationkey, (Func < LogEvent, IFormatProvider, ITelemetry > )LogEventConverters.ConvertLogEventsToEventTelemetryWithContext);
+        }
+
+        public static LoggerConfiguration ApplicationInsightsWithStandardLoggersForTraceTelemetry(this LoggerSinkConfiguration sinkConfiguration, string appInsightsInstrumentationkey)
+        {
+            return sinkConfiguration.ApplicationInsights(appInsightsInstrumentationkey, (Func < LogEvent, IFormatProvider, ITelemetry > )LogEventConverters.ConvertLogEventsToTraceTelemetryWithContext);
         }
     }
 }

@@ -67,13 +67,10 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
             // TODO: May need to upgrade with this in mind: https://stackoverflow.com/questions/28664686/how-do-i-get-client-ip-address-in-asp-net-core
             Request.RemoteIpAddress = context.Request.HttpContext?.Connection?.RemoteIpAddress.ToString();
 
-            if(_apiLogVerbosity == ApiLogVerbosity.LogEverything)
-            {
-                Request.Method = context.Request.Method;
-                Request.Scheme = context.Request.Scheme;
-                Request.Host = context.Request.Host.ToString();
-                Request.Path = context.Request.Path;
-            }
+            Request.Method = context.Request.Method;
+            Request.Scheme = context.Request.Scheme;
+            Request.Host = context.Request.Host.ToString();
+            Request.Path = context.Request.Path;
 
             if(_apiLogVerbosity != ApiLogVerbosity.NoRequestResponse) 
             {                
@@ -130,11 +127,13 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
             }
             else if(_apiLogVerbosity == ApiLogVerbosity.LogMinimalRequest)
             {
-                customProperties["queryString"] = Request.QueryString;
-                customProperties["remoteIpAddress"] = Request.RemoteIpAddress;
-                customProperties["response"] = Response.ToString();
+                customProperties["requestQueryString"] = Request.QueryString;
+                customProperties["requestBody"] = Request.Body;
+                customProperties["responseStatusCode"] = Response.StatusCode;
+                customProperties["responseBody"] = Response.Body;
             }
 
+            customProperties["remoteIpAddress"] = Request.RemoteIpAddress;
             customProperties["requestExecutionTimeMS"] = RequestExecutionTime;
             customProperties["requestExecutionTimeMinutes"] = RequestExecutionTimeMinutes;
 
