@@ -108,11 +108,11 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
             if (CaugthException != null)
             {
-                LogError($"Request {Request.Method} to /{Request.Path} Completed with Exception", CaugthException);
+                LogError($"Request {Request.Method} to {Request.Path} Completed with Exception", CaugthException);
             }
             else
             {
-                LogInfo($"Request {Request.Method} to /{Request.Path} Complete");
+                LogInfo($"Request {Request.Method} to {Request.Path} Complete");
             }
         }
         
