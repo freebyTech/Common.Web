@@ -26,8 +26,9 @@ namespace freebyTech.Common.Web.ExtensionMethods
         public static void UseStandardApiMiddleware(this IApplicationBuilder app)
         {
             app.EnableRequestBuffering();
-            app.UseMiddleware<ApiExceptionMiddleware>();
             app.UseMiddleware<ApiRequestLoggingMiddleware>();
+            // This needs to catch and log exceptions for the api middleware above so it should run after it.
+            app.UseMiddleware<ApiExceptionMiddleware>();
         }
     }
 }
