@@ -93,11 +93,11 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
             if (CaugthException != null)
             {
-                LogError("Request {Verb} {Path} Completed with Exception", CaugthException);
+                LogError($"Request {Request.Method} to /{Request.Path} Completed with Exception", CaugthException);
             }
             else
             {
-                LogInfo("Request {Verb} {Path}  Complete");
+                LogInfo($"Request {Request.Method} to /{Request.Path} Complete");
             }
         }
         
@@ -110,10 +110,10 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
             customProperties["requestExecutionTimeMS"] = RequestExecutionTime;
             customProperties["requestExecutionTimeMinutes"] = RequestExecutionTimeMinutes;
             if(!ActivityId.IsNullOrEmpty()) {
-                customProperties["activityId"] = ActivityId;
+                customProperties["operationId"] = ActivityId;
             }
             if(!ParentActivityId.IsNullOrEmpty()) {
-                customProperties["parentActivityId"] = ParentActivityId;
+                customProperties["parentOperationId"] = ParentActivityId;
             }
             if(!UserId.IsNullOrEmpty()) {
                 customProperties["userId"] = UserId;

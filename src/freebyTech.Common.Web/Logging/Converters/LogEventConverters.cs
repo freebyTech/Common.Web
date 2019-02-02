@@ -29,7 +29,7 @@ namespace freebyTech.Common.Web.Logging.Converters
                 // Exception telemetry
                 return logEvent.ToDefaultExceptionTelemetry(
                 formatProvider,
-                includeLogLevelAsProperty: false,
+                includeLogLevelAsProperty: true,
                 includeRenderedMessageAsProperty: false,
                 includeMessageTemplateAsProperty: false);
             }
@@ -37,9 +37,38 @@ namespace freebyTech.Common.Web.Logging.Converters
                 // default telemetry
                 return logEvent.ToDefaultEventTelemetry(
                 formatProvider,
-                includeLogLevelAsProperty: false,
+                includeLogLevelAsProperty: true,
                 includeRenderedMessageAsProperty: false,
                 includeMessageTemplateAsProperty: false);
+            }
+        }
+
+        public static ITelemetry ConvertLogEventsToTraceTelemetryWithContext(LogEvent logEvent, IFormatProvider formatProvider)
+        {
+            return (ConvertToTraceTelemetry(logEvent, formatProvider).UpdateWithContextTelemitryProperties(logEvent));
+        }
+
+        public static ITelemetry ConvertToTraceTelemetry(LogEvent logEvent, IFormatProvider formatProvider)
+        {
+            // first create a default EventTelemetry using the sink's default logic
+            // .. but without the log level, and (rendered) message (template) included in the Properties
+            if (logEvent.Exception != null)
+            {
+                // Exception telemetry
+                return logEvent.ToDefaultExceptionTelemetry(
+                    formatProvider,
+                    includeLogLevelAsProperty: true,
+                    includeRenderedMessageAsProperty: false,
+                    includeMessageTemplateAsProperty: false);
+            }
+            else
+            {
+                // default telemetry
+                return logEvent.ToDefaultTraceTelemetry(
+                    formatProvider,
+                    includeLogLevelAsProperty: true,
+                    includeRenderedMessageAsProperty: false,
+                    includeMessageTemplateAsProperty: false);
             }
         }
 
