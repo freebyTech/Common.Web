@@ -3,7 +3,7 @@ using Microsoft.ApplicationInsights.Extensibility;
 
 namespace freebyTech.Common.Web.Logging.Initializers.AppInsights
 {
-    internal class ContextInitializer : ITelemetryInitializer
+    public class ContextInitializer : ITelemetryInitializer
     {
         private string _applicationName { get; set; }
 
