@@ -11,7 +11,6 @@ using freebyTech.Common.Logging.Interfaces;
 using freebyTech.Common.Web.Logging.Interfaces;
 using freebyTech.Common.Web.Models;
 using Microsoft.AspNetCore.Http;
-using NLog;
 
 namespace freebyTech.Common.Web.Logging.LoggerTypes
 {
