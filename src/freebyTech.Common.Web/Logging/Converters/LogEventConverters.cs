@@ -82,7 +82,7 @@ namespace freebyTech.Common.Web.Logging.Converters
             // Post-process the telemetry's context to contain the operation id
             if (logEvent.Properties.ContainsKey("RequestId"))
             {
-                telemetry.Context.Operation.Id = logEvent.Properties["activityId"].ToString();
+                telemetry.Context.Operation.Id = logEvent.Properties["RequestId"].ToString();
             }
             // Post-process the telemetry's context to contain the operation parent id
             if (logEvent.Properties.ContainsKey("parentActivityId"))
@@ -93,7 +93,7 @@ namespace freebyTech.Common.Web.Logging.Converters
             ISupportProperties propTelematry = (ISupportProperties)telemetry;
 
             // Find now redundent properties
-            var removeProps = new[] { "userId", "activityId", "parentActivityId" };
+            var removeProps = new[] { "userId", "RequestId", "parentActivityId" };
             removeProps = removeProps.Where(prop => propTelematry.Properties.ContainsKey(prop)).ToArray();
 
             foreach (var prop in removeProps)
