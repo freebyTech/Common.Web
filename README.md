@@ -9,7 +9,7 @@ Technologies currently used are:
 | Tool                               | URL                                              |
 | ---------------------------------- | ------------------------------------------------ |
 | Git for Windows                    | https://git-scm.com/download/win                 |
-| Install Latest .NET Core 2.1 SDK   | https://www.microsoft.com/net/download/windows   |
+| Install Latest .NET Core 3.1 SDK   | https://www.microsoft.com/net/download/windows   |
 | Install Latest LTS Version of Node | https://nodejs.org/en/                           |
 
 
