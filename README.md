@@ -1,9 +1,9 @@
 # Common.Web
-Common Web Library for freebyTech Software written in .NET Core 2.1. Because it is written in .NET Core, this library can be run on Windows, Linux, or a Mac.
+Common Web Library for freebyTech Software written in .NET Core 3.1. Because it is written in .NET Core, this library can be run on Windows, Linux, or a Mac.
 
 Technologies currently used are:
 
-* .NET Core 2.1
+* .NET Core 3.1
 
 ## Installing Required Tools
 | Tool                               | URL                                              |
