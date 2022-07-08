@@ -98,7 +98,7 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
     public void PushCaughtException(Exception exception)
     {
-      LogError("API Request Logger Caught Exception", CaughtException);
+      LogError($"API Request Logger Caught Exception of Type ${exception?.GetType()}", exception);
       CaughtException = exception;
     }
 
