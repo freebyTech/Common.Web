@@ -98,7 +98,6 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
     public void PushCaughtException(Exception exception)
     {
-      LogError($"API Request Logger Caught Exception of Type ${exception?.GetType()}", exception);
       CaughtException = exception;
     }
 
@@ -110,7 +109,18 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
       if (CaughtException != null)
       {
-        LogError($"Api Request {Request.Method} to {Request.Path} Failed with Exception", CaughtException);
+        LogError($"Api Request {Request.Method} to {Request.Path} Failed with Exception:", CaughtException);
+        LogError($"{CaughtException?.GetType()} : {CaughtException.Source} : {CaughtException.Message}");
+        if (CaughtException.TargetSite != null)
+        {
+          LogError($"Target Site: {CaughtException.TargetSite}");
+        }
+        LogError($"{CaughtException.StackTrace}");
+        if (CaughtException.InnerException != null)
+        {
+          LogError($"Inner Exception: {CaughtException.InnerException?.GetType()} : {CaughtException.InnerException.Source} : {CaughtException.InnerException.Message}");
+          LogError($"{CaughtException.InnerException.StackTrace}:");
+        }
       }
       else
       {
