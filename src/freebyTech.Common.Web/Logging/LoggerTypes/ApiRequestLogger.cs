@@ -109,18 +109,20 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
       if (CaughtException != null)
       {
-        LogError($"Api Request {Request.Method} to {Request.Path} Failed with Exception:", CaughtException);
-        LogError($"{CaughtException?.GetType()} : {CaughtException.Source} : {CaughtException.Message}");
+        var errorString = $"Api Request {Request.Method} to {Request.Path} Failed with Exception:&NL{CaughtException?.GetType()} : {CaughtException.Source} : {CaughtException.Message}&NL";
+
         if (CaughtException.TargetSite != null)
         {
-          LogError($"Target Site: {CaughtException.TargetSite}");
+          errorString += ($"Target Site: {CaughtException.TargetSite}&NL");
         }
-        LogError($"{CaughtException.StackTrace}");
+        errorString += $"{CaughtException.StackTrace}&NL";
         if (CaughtException.InnerException != null)
         {
-          LogError($"Inner Exception: {CaughtException.InnerException?.GetType()} : {CaughtException.InnerException.Source} : {CaughtException.InnerException.Message}");
-          LogError($"{CaughtException.InnerException.StackTrace}:");
+          errorString += $"Inner Exception: {CaughtException.InnerException?.GetType()} : {CaughtException.InnerException.Source} : {CaughtException.InnerException.Message}&NL";
+          errorString += $"{CaughtException.InnerException.StackTrace}";
         }
+        errorString = errorString.Replace("&NL", System.Environment.NewLine);
+        LogError(errorString, CaughtException);
       }
       else
       {
