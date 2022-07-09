@@ -109,7 +109,7 @@ namespace freebyTech.Common.Web.Logging.LoggerTypes
 
       if (CaughtException != null)
       {
-        var errorString = $"Api Request {Request.Method} to {Request.Path} Failed with Exception:&NL{CaughtException?.GetType()} : {CaughtException.Source} : {CaughtException.Message}&NL";
+        var errorString = $"Api Request {Request.Method} to {Request.Path} Failed with {CaughtException?.GetType()}&NL{CaughtException.Source} : {CaughtException.Message}&NL";
 
         if (CaughtException.TargetSite != null)
         {
