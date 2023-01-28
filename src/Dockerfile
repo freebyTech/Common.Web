@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:3.1
+FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /lib
 
 # copy csproj files and restore as distinct layers so we break cache as little as possible
