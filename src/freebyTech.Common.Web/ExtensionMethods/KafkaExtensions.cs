@@ -68,6 +68,43 @@ public static class KafkaExtensions
     return serviceCollection.AddSingleton(typeof(ConsumerBuilder<K, T>), consumerBuilder);
   }
 
+  public static IServiceCollection AddRegularOrAvroConsumerBuilderForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaConsumerOptions> consumerOptions)
+  {
+    if (serviceCollection == null)
+      throw new ArgumentNullException(nameof(serviceCollection));
+    if (consumerOptions == null || consumerOptions.Value == null)
+      throw new ArgumentNullException(nameof(consumerOptions));
+
+    var cf = consumerOptions.Value;
+
+    ConsumerConfig config =
+      new()
+      {
+        BootstrapServers = cf.BootstrapServers,
+        GroupId = cf.GroupId,
+        AutoOffsetReset = cf.AutoOffsetReset ?? AutoOffsetReset.Earliest,
+        SecurityProtocol = cf.SecurityProtocol,
+        SslCaLocation = cf.SslCALocation,
+        SslCertificateLocation = cf.SslCertificateLocation,
+        SslKeyLocation = cf.SslKeyLocation
+      };
+
+    var consumerBuilder = new ConsumerBuilder<Ignore, T>(config);
+
+    if (!cf.SchemaRegistryUrls.IsNullOrEmpty())
+    {
+      SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
+      CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
+      consumerBuilder
+        .SetValueDeserializer(new AvroDeserializer<T>(registryClient).AsSyncOverAsync())
+        .SetErrorHandler(
+          (_, e) => Log.Error("Message: {Message} MessageType: {messageType} ErrorCode: {errorCode} ErrorReason: {errorReason}", "Failed to Consume Message", typeof(T).ToString(), e.Code, e.Reason)
+        );
+    }
+
+    return serviceCollection.AddSingleton(typeof(ConsumerBuilder<Ignore, T>), consumerBuilder);
+  }
+
   public static IServiceCollection AddRegularOrAvroProducerForType<K, T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
   {
     if (serviceCollection == null)
