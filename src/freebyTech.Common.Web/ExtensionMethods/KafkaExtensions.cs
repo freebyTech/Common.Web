@@ -30,7 +30,7 @@ public static class KafkaExtensions
     return serviceCollection.AddSingleton<ICancellableKafkaEventConsumer, CancellableKafkaEventConsumer>();
   }
 
-  public static IServiceCollection AddRegularOrAvroConsumerBuilderForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaConsumerOptions> consumerOptions)
+  public static IServiceCollection AddRegularOrAvroConsumerBuilderForType<K, T>(this IServiceCollection serviceCollection, IOptions<KafkaConsumerOptions> consumerOptions)
   {
     if (serviceCollection == null)
       throw new ArgumentNullException(nameof(serviceCollection));
@@ -51,20 +51,21 @@ public static class KafkaExtensions
         SslKeyLocation = cf.SslKeyLocation
       };
 
-    var consumerBuilder = new ConsumerBuilder<Ignore, T>(config);
+    var consumerBuilder = new ConsumerBuilder<K, T>(config);
 
     if (!cf.SchemaRegistryUrls.IsNullOrEmpty())
     {
       SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
       CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
       consumerBuilder
+        .SetKeyDeserializer(new AvroDeserializer<K>(registryClient).AsSyncOverAsync())
         .SetValueDeserializer(new AvroDeserializer<T>(registryClient).AsSyncOverAsync())
         .SetErrorHandler(
           (_, e) => Log.Error("Message: {Message} MessageType: {messageType} ErrorCode: {errorCode} ErrorReason: {errorReason}", "Failed to Consume Message", typeof(T).ToString(), e.Code, e.Reason)
         );
     }
 
-    return serviceCollection.AddSingleton(typeof(ConsumerBuilder<Ignore, T>), consumerBuilder);
+    return serviceCollection.AddSingleton(typeof(ConsumerBuilder<K, T>), consumerBuilder);
   }
 
   public static IServiceCollection AddRegularOrAvroProducerForType<K, T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
