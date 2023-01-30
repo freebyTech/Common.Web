@@ -5,6 +5,8 @@ namespace freebyTech.Common.Web.Services.Interfaces;
 /// </summary>
 public interface ICancellableKafkaEventConsumer
 {
+  public string GetTopicName<T>();
+
   /// <summary>
   /// Listens for events to be dispatched on the topic for MessageType T.
   /// </summary>

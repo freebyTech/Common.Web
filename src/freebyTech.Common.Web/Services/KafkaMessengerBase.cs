@@ -19,7 +19,7 @@ public class KafkaMessengerBase
     _className = className;
   }
 
-  protected string GetTopicName<T>()
+  public string GetTopicName<T>()
   {
     var messageType = typeof(T).ToString();
     Log.Debug("{className}: Searching for Topic type {messageType}", _className, messageType);

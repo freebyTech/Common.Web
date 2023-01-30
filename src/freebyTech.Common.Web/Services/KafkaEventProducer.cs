@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using freebyTech.Common.Web.Services.Interfaces;
 using freebyTech.Common.Web.Options;
-using freebyTech.Common.ExtensionMethods;
 
 namespace freebyTech.Common.Web.Services;
 
@@ -24,10 +23,31 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
       throw new ArgumentNullException(nameof(message));
     }
 
-    var producer = _services.GetRequiredService<IProducer<string, T>>();
+    var producer = _services.GetRequiredService<IProducer<Ignore, T>>();
 
     return producer
-      .ProduceAsync(GetTopicName<T>(), new Message<string, T> { Key = Guid.NewGuid().ToString(), Value = message })
+      .ProduceAsync(GetTopicName<T>(), new Message<Ignore, T> { Value = message })
+      .ContinueWith(task =>
+      {
+        if (task.IsFaulted)
+        {
+          Log.Error("Type: {type} Message: {errorMessage}", typeof(T).ToString(), task?.Exception?.InnerException?.Message ?? task?.Exception?.Message);
+        }
+      });
+  }
+
+  /// <inheritdoc />
+  public Task ProduceMessageAsync<K, T>(K key, T message)
+  {
+    if (message == null)
+    {
+      throw new ArgumentNullException(nameof(message));
+    }
+
+    var producer = _services.GetRequiredService<IProducer<K, T>>();
+
+    return producer
+      .ProduceAsync(GetTopicName<T>(), new Message<K, T> { Key = key, Value = message })
       .ContinueWith(task =>
       {
         if (task.IsFaulted)
@@ -51,6 +71,19 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
   }
 
   /// <inheritdoc />
+  public void ProduceMessages<K, T>(Dictionary<K, T> messages)
+  {
+    var topic = GetTopicName<T>();
+
+    foreach (var key in messages.Keys)
+    {
+      ProduceMessage(key, messages[key], topic);
+    }
+
+    Flush<T>();
+  }
+
+  /// <inheritdoc />
   public void ProduceMessage<T>(T message, string? previouslyFoundTopicName = null)
   {
     if (message == null)
@@ -58,7 +91,7 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
       throw new ArgumentNullException(nameof(message));
     }
 
-    var producer = _services.GetRequiredService<IProducer<string, T>>();
+    var producer = _services.GetRequiredService<IProducer<Ignore, T>>();
 
     var retries = 10;
     var sent = false;
@@ -67,7 +100,41 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
     {
       try
       {
-        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<string, T> { Key = Guid.NewGuid().ToString(), Value = message }, HandleDeliveryReport);
+        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<Ignore, T> { Value = message }, HandleDeliveryReport);
+        sent = true;
+      }
+      catch (Exception ex)
+      {
+        if (ex.Message == "Local: Queue full" && retries-- > 0)
+        {
+          producer.Flush(FLUSH_TIME);
+        }
+        else
+        {
+          throw;
+        }
+      }
+    }
+  }
+
+  /// <inheritdoc />
+  public void ProduceMessage<K, T>(K key, T message, string? previouslyFoundTopicName)
+  {
+    if (message == null)
+    {
+      throw new ArgumentNullException(nameof(message));
+    }
+
+    var producer = _services.GetRequiredService<IProducer<K, T>>();
+
+    var retries = 10;
+    var sent = false;
+
+    while (!sent)
+    {
+      try
+      {
+        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<K, T> { Key = key, Value = message }, HandleDeliveryReport);
         sent = true;
       }
       catch (Exception ex)
@@ -115,7 +182,7 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
   /// </summary>
   /// <param name="deliveryReport">A <see cref="DeliveryReport{TKey, TValue}"/> to process.
   /// </param>
-  private static void HandleDeliveryReport<T>(DeliveryReport<string, T> deliveryReport)
+  private static void HandleDeliveryReport<K, T>(DeliveryReport<K, T> deliveryReport)
   {
     if (deliveryReport.Error.Code != ErrorCode.NoError)
     {
