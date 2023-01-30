@@ -106,6 +106,42 @@ public static class KafkaExtensions
     return serviceCollection.AddSingleton(typeof(IProducer<K, T>), producer);
   }
 
+  public static IServiceCollection AddRegularOrAvroProducerForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
+  {
+    if (serviceCollection == null)
+      throw new ArgumentNullException(nameof(serviceCollection));
+    if (producerOptions == null || producerOptions.Value == null)
+      throw new ArgumentNullException(nameof(producerOptions));
+
+    var cf = producerOptions.Value;
+
+    ProducerConfig config =
+      new()
+      {
+        BootstrapServers = cf.BootstrapServers,
+        LingerMs = cf.LingerMs,
+        SecurityProtocol = cf.SecurityProtocol,
+        SslCaLocation = cf.SslCALocation,
+        SslCertificateLocation = cf.SslCertificateLocation,
+        SslKeyLocation = cf.SslKeyLocation
+      };
+
+    var producerBuilder = new ProducerBuilder<Null, T>(config);
+
+    if (!cf.SchemaRegistryUrls.IsNullOrEmpty())
+    {
+      SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
+      CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
+      var avroSerializerConfig = new AvroSerializerConfig();
+
+      producerBuilder.SetValueSerializer(new AvroSerializer<T>(registryClient, avroSerializerConfig).AsSyncOverAsync());
+    }
+
+    var producer = producerBuilder.Build();
+
+    return serviceCollection.AddSingleton(typeof(IProducer<Null, T>), producer);
+  }
+
   public static IServiceCollection AddKafkaEventProducer(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
   {
     if (serviceCollection == null)
