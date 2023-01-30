@@ -5,10 +5,12 @@ namespace freebyTech.Common.Web.Services.Interfaces;
 /// </summary>
 public interface ICancellableKafkaEventConsumer
 {
-    /// <summary>
-    /// A cancellable Kafka event consumer for a given generic type T.
-    /// </summary>
-    /// <param name="consumerHandler">The action to handle the event of messag type T.</param>
-    /// <param name="cancellationToken">The optional cancellation token that can stop topic consumption.</param>
-    Task Consume<T>(Action<T> consumerHandler, CancellationToken cancellationToken);
+  /// <summary>
+  /// Listens for events to be dispatched on the topic for MessageType T.
+  /// </summary>
+  /// <param name="consumerHandler">Action to handle event of MessageType T</param>
+  /// <param name="cancellationToken">Token to signal cancellation and shutdown.</param>
+  /// <typeparam name="T">The MessageType being listened for.</typeparam>
+  /// <returns></returns>
+  Task Consume<T>(Action<T> consumerHandler, CancellationToken cancellationToken);
 }
