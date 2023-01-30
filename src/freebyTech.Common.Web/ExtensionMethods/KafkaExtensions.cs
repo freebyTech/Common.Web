@@ -105,4 +105,14 @@ public static class KafkaExtensions
 
     return serviceCollection.AddSingleton(typeof(IProducer<K, T>), producer);
   }
+
+  public static IServiceCollection AddKafkaEventProducer(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
+  {
+    if (serviceCollection == null)
+      throw new ArgumentNullException(nameof(serviceCollection));
+    if (producerOptions == null || producerOptions.Value == null)
+      throw new ArgumentNullException(nameof(producerOptions));
+
+    return serviceCollection.AddSingleton<IKafkaEventProducer, KafkaEventProducer>();
+  }
 }
