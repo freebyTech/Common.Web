@@ -67,7 +67,7 @@ public static class KafkaExtensions
     return serviceCollection.AddSingleton(typeof(ConsumerBuilder<Ignore, T>), consumerBuilder);
   }
 
-  public static IServiceCollection AddRegularOrAvroProducerForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
+  public static IServiceCollection AddRegularOrAvroProducerForType<K, T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
   {
     if (serviceCollection == null)
       throw new ArgumentNullException(nameof(serviceCollection));
@@ -87,7 +87,7 @@ public static class KafkaExtensions
         SslKeyLocation = cf.SslKeyLocation
       };
 
-    var producerBuilder = new ProducerBuilder<string, T>(config);
+    var producerBuilder = new ProducerBuilder<K, T>(config);
 
     if (!cf.SchemaRegistryUrls.IsNullOrEmpty())
     {
@@ -96,12 +96,12 @@ public static class KafkaExtensions
       var avroSerializerConfig = new AvroSerializerConfig();
 
       producerBuilder
-        .SetKeySerializer(new AvroSerializer<string>(registryClient, avroSerializerConfig).AsSyncOverAsync())
+        .SetKeySerializer(new AvroSerializer<K>(registryClient, avroSerializerConfig).AsSyncOverAsync())
         .SetValueSerializer(new AvroSerializer<T>(registryClient, avroSerializerConfig).AsSyncOverAsync());
     }
 
     var producer = producerBuilder.Build();
 
-    return serviceCollection.AddSingleton(typeof(IProducer<string, T>), producer);
+    return serviceCollection.AddSingleton(typeof(IProducer<K, T>), producer);
   }
 }
