@@ -100,7 +100,7 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
     {
       try
       {
-        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<Null, T> { Value = message }, HandleDeliveryReport);
+        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<Null, T> { Value = message }, HandleDeliveryReport<Null, T>);
         sent = true;
       }
       catch (Exception ex)
@@ -134,7 +134,7 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
     {
       try
       {
-        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<K, T> { Key = key, Value = message }, HandleDeliveryReport);
+        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<K, T> { Key = key, Value = message }, HandleDeliveryReport<K, T>);
         sent = true;
       }
       catch (Exception ex)
