@@ -80,7 +80,7 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
       ProduceMessage(key, messages[key], topic);
     }
 
-    Flush<T>();
+    Flush<K, T>();
   }
 
   /// <inheritdoc />
@@ -154,7 +154,14 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
   /// <inheritdoc />
   public void Flush<T>()
   {
-    var producer = _services.GetRequiredService<IProducer<string, T>>();
+    var producer = _services.GetRequiredService<IProducer<Null, T>>();
+    producer.Flush();
+  }
+
+  /// <inheritdoc />
+  public void Flush<K, T>()
+  {
+    var producer = _services.GetRequiredService<IProducer<K, T>>();
     producer.Flush();
   }
 
