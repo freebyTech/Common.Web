@@ -23,10 +23,10 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
       throw new ArgumentNullException(nameof(message));
     }
 
-    var producer = _services.GetRequiredService<IProducer<Ignore, T>>();
+    var producer = _services.GetRequiredService<IProducer<Null, T>>();
 
     return producer
-      .ProduceAsync(GetTopicName<T>(), new Message<Ignore, T> { Value = message })
+      .ProduceAsync(GetTopicName<T>(), new Message<Null, T> { Value = message })
       .ContinueWith(task =>
       {
         if (task.IsFaulted)
@@ -91,7 +91,7 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
       throw new ArgumentNullException(nameof(message));
     }
 
-    var producer = _services.GetRequiredService<IProducer<Ignore, T>>();
+    var producer = _services.GetRequiredService<IProducer<Null, T>>();
 
     var retries = 10;
     var sent = false;
@@ -100,7 +100,7 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
     {
       try
       {
-        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<Ignore, T> { Value = message }, HandleDeliveryReport);
+        producer.Produce(previouslyFoundTopicName ?? GetTopicName<T>(), new Message<Null, T> { Value = message }, HandleDeliveryReport);
         sent = true;
       }
       catch (Exception ex)
