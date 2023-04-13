@@ -179,6 +179,52 @@ public static class KafkaExtensions
     return serviceCollection.AddSingleton(typeof(IProducer<Null, T>), producer);
   }
 
+  public static ProducerBuilder<K, T> CreateRegularProducerBuilderForType<K, T>(IOptions<KafkaProducerOptions> producerOptions)
+  {
+    if (producerOptions == null || producerOptions.Value == null)
+      throw new ArgumentNullException(nameof(producerOptions));
+
+    var cf = producerOptions.Value;
+
+    ProducerConfig config =
+      new()
+      {
+        BootstrapServers = cf.BootstrapServers,
+        LingerMs = cf.LingerMs,
+        SecurityProtocol = cf.SecurityProtocol,
+        SslCaLocation = cf.SslCALocation,
+        SslCertificateLocation = cf.SslCertificateLocation,
+        SslKeyLocation = cf.SslKeyLocation
+      };
+
+    var producerBuilder = new ProducerBuilder<K, T>(config);
+
+    return producerBuilder;
+  }
+
+  public static ProducerBuilder<Null, T> CreateRegularProducerBuilderForType<T>(IOptions<KafkaProducerOptions> producerOptions)
+  {
+    if (producerOptions == null || producerOptions.Value == null)
+      throw new ArgumentNullException(nameof(producerOptions));
+
+    var cf = producerOptions.Value;
+
+    ProducerConfig config =
+      new()
+      {
+        BootstrapServers = cf.BootstrapServers,
+        LingerMs = cf.LingerMs,
+        SecurityProtocol = cf.SecurityProtocol,
+        SslCaLocation = cf.SslCALocation,
+        SslCertificateLocation = cf.SslCertificateLocation,
+        SslKeyLocation = cf.SslKeyLocation
+      };
+
+    var producerBuilder = new ProducerBuilder<Null, T>(config);
+
+    return producerBuilder;
+  }
+
   public static IServiceCollection AddKafkaEventProducer(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
   {
     if (serviceCollection == null)
