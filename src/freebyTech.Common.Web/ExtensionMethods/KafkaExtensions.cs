@@ -30,7 +30,7 @@ public static class KafkaExtensions
     return serviceCollection.AddSingleton<ICancellableKafkaEventConsumer, CancellableKafkaEventConsumer>();
   }
 
-  public static IServiceCollection AddRegularOrAvroConsumerBuilderForType<K, T>(this IServiceCollection serviceCollection, IOptions<KafkaConsumerOptions> consumerOptions)
+  public static IServiceCollection AddAvroConsumerBuilderForType<K, T>(this IServiceCollection serviceCollection, IOptions<KafkaConsumerOptions> consumerOptions)
   {
     if (serviceCollection == null)
       throw new ArgumentNullException(nameof(serviceCollection));
@@ -38,6 +38,8 @@ public static class KafkaExtensions
       throw new ArgumentNullException(nameof(consumerOptions));
 
     var cf = consumerOptions.Value;
+    if (cf == null || cf.SchemaRegistryUrls.IsNullOrEmpty())
+      throw new ArgumentException("No SchemaRegistryUrls specified.");
 
     ConsumerConfig config =
       new()
@@ -53,22 +55,24 @@ public static class KafkaExtensions
 
     var consumerBuilder = new ConsumerBuilder<K, T>(config);
 
-    if (!cf.SchemaRegistryUrls.IsNullOrEmpty())
-    {
-      SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
-      CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
-      consumerBuilder
-        .SetKeyDeserializer(new AvroDeserializer<K>(registryClient).AsSyncOverAsync())
-        .SetValueDeserializer(new AvroDeserializer<T>(registryClient).AsSyncOverAsync())
-        .SetErrorHandler(
-          (_, e) => Log.Error("Message: {Message} MessageType: {messageType} ErrorCode: {errorCode} ErrorReason: {errorReason}", "Failed to Consume Message", typeof(T).ToString(), e.Code, e.Reason)
-        );
-    }
+    SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
+    CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
+    consumerBuilder
+      .SetValueDeserializer(new AvroDeserializer<T>(registryClient).AsSyncOverAsync())
+      .SetErrorHandler(
+        (_, e) => Log.Error("Message: {Message} MessageType: {messageType} ErrorCode: {errorCode} ErrorReason: {errorReason}", "Failed to Consume Message", typeof(T).ToString(), e.Code, e.Reason)
+      );
 
     return serviceCollection.AddSingleton(typeof(ConsumerBuilder<K, T>), consumerBuilder);
   }
 
-  public static IServiceCollection AddRegularOrAvroConsumerBuilderForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaConsumerOptions> consumerOptions)
+  public static IServiceCollection AddAvroConsumerBuilderForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaConsumerOptions> consumerOptions)
+  {
+    return serviceCollection.AddAvroConsumerBuilderForType<Ignore, T>(consumerOptions);
+  }
+
+  public static IServiceCollection AddStandardConsumerBuilderForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaConsumerOptions> consumerOptions)
+    where T : ISerializer<T>, IDeserializer<T>, new()
   {
     if (serviceCollection == null)
       throw new ArgumentNullException(nameof(serviceCollection));
@@ -91,21 +95,16 @@ public static class KafkaExtensions
 
     var consumerBuilder = new ConsumerBuilder<Ignore, T>(config);
 
-    if (!cf.SchemaRegistryUrls.IsNullOrEmpty())
-    {
-      SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
-      CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
-      consumerBuilder
-        .SetValueDeserializer(new AvroDeserializer<T>(registryClient).AsSyncOverAsync())
-        .SetErrorHandler(
-          (_, e) => Log.Error("Message: {Message} MessageType: {messageType} ErrorCode: {errorCode} ErrorReason: {errorReason}", "Failed to Consume Message", typeof(T).ToString(), e.Code, e.Reason)
-        );
-    }
+    consumerBuilder
+      .SetValueDeserializer(new T())
+      .SetErrorHandler(
+        (_, e) => Log.Error("Message: {Message} MessageType: {messageType} ErrorCode: {errorCode} ErrorReason: {errorReason}", "Failed to Consume Message", typeof(T).ToString(), e.Code, e.Reason)
+      );
 
     return serviceCollection.AddSingleton(typeof(ConsumerBuilder<Ignore, T>), consumerBuilder);
   }
 
-  public static IServiceCollection AddRegularOrAvroProducerForType<K, T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
+  public static IServiceCollection AddAvroProducerForType<K, T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
   {
     if (serviceCollection == null)
       throw new ArgumentNullException(nameof(serviceCollection));
@@ -113,6 +112,8 @@ public static class KafkaExtensions
       throw new ArgumentNullException(nameof(producerOptions));
 
     var cf = producerOptions.Value;
+    if (cf == null || cf.SchemaRegistryUrls.IsNullOrEmpty())
+      throw new ArgumentException("No SchemaRegistryUrls specified.");
 
     ProducerConfig config =
       new()
@@ -126,24 +127,26 @@ public static class KafkaExtensions
       };
 
     var producerBuilder = new ProducerBuilder<K, T>(config);
+    SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
+    CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
+    var avroSerializerConfig = new AvroSerializerConfig();
 
-    if (!cf.SchemaRegistryUrls.IsNullOrEmpty())
-    {
-      SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
-      CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
-      var avroSerializerConfig = new AvroSerializerConfig();
-
-      producerBuilder
-        .SetKeySerializer(new AvroSerializer<K>(registryClient, avroSerializerConfig).AsSyncOverAsync())
-        .SetValueSerializer(new AvroSerializer<T>(registryClient, avroSerializerConfig).AsSyncOverAsync());
-    }
+    producerBuilder
+      .SetKeySerializer(new AvroSerializer<K>(registryClient, avroSerializerConfig).AsSyncOverAsync())
+      .SetValueSerializer(new AvroSerializer<T>(registryClient, avroSerializerConfig).AsSyncOverAsync());
 
     var producer = producerBuilder.Build();
 
     return serviceCollection.AddSingleton(typeof(IProducer<K, T>), producer);
   }
 
-  public static IServiceCollection AddRegularOrAvroProducerForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
+  public static IServiceCollection AddAvroProducerForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
+  {
+    return serviceCollection.AddAvroProducerForType<Null, T>(producerOptions);
+  }
+
+  public static IServiceCollection AddStandardProducerForType<T>(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
+    where T : ISerializer<T>, IDeserializer<T>, new()
   {
     if (serviceCollection == null)
       throw new ArgumentNullException(nameof(serviceCollection));
@@ -165,64 +168,15 @@ public static class KafkaExtensions
 
     var producerBuilder = new ProducerBuilder<Null, T>(config);
 
-    if (!cf.SchemaRegistryUrls.IsNullOrEmpty())
-    {
-      SchemaRegistryConfig schemaRegistryConfig = new() { Url = cf.SchemaRegistryUrls };
-      CachedSchemaRegistryClient registryClient = new(schemaRegistryConfig);
-      var avroSerializerConfig = new AvroSerializerConfig();
-
-      producerBuilder.SetValueSerializer(new AvroSerializer<T>(registryClient, avroSerializerConfig).AsSyncOverAsync());
-    }
+    producerBuilder
+      .SetValueSerializer(new T())
+      .SetErrorHandler(
+        (_, e) => Log.Error("Message: {Message} MessageType: {messageType} ErrorCode: {errorCode} ErrorReason: {errorReason}", "Failed to Produce Message", typeof(T).ToString(), e.Code, e.Reason)
+      );
 
     var producer = producerBuilder.Build();
 
     return serviceCollection.AddSingleton(typeof(IProducer<Null, T>), producer);
-  }
-
-  public static ProducerBuilder<K, T> CreateRegularProducerBuilderForType<K, T>(IOptions<KafkaProducerOptions> producerOptions)
-  {
-    if (producerOptions == null || producerOptions.Value == null)
-      throw new ArgumentNullException(nameof(producerOptions));
-
-    var cf = producerOptions.Value;
-
-    ProducerConfig config =
-      new()
-      {
-        BootstrapServers = cf.BootstrapServers,
-        LingerMs = cf.LingerMs,
-        SecurityProtocol = cf.SecurityProtocol,
-        SslCaLocation = cf.SslCALocation,
-        SslCertificateLocation = cf.SslCertificateLocation,
-        SslKeyLocation = cf.SslKeyLocation
-      };
-
-    var producerBuilder = new ProducerBuilder<K, T>(config);
-
-    return producerBuilder;
-  }
-
-  public static ProducerBuilder<Null, T> CreateRegularProducerBuilderForType<T>(IOptions<KafkaProducerOptions> producerOptions)
-  {
-    if (producerOptions == null || producerOptions.Value == null)
-      throw new ArgumentNullException(nameof(producerOptions));
-
-    var cf = producerOptions.Value;
-
-    ProducerConfig config =
-      new()
-      {
-        BootstrapServers = cf.BootstrapServers,
-        LingerMs = cf.LingerMs,
-        SecurityProtocol = cf.SecurityProtocol,
-        SslCaLocation = cf.SslCALocation,
-        SslCertificateLocation = cf.SslCertificateLocation,
-        SslKeyLocation = cf.SslKeyLocation
-      };
-
-    var producerBuilder = new ProducerBuilder<Null, T>(config);
-
-    return producerBuilder;
   }
 
   public static IServiceCollection AddKafkaEventProducer(this IServiceCollection serviceCollection, IOptions<KafkaProducerOptions> producerOptions)
