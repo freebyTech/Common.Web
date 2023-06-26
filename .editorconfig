@@ -11,3 +11,23 @@ trim_trailing_whitespace = true
 [*.md]
 max_line_length = off
 trim_trailing_whitespace = false
+
+[*.cs]
+# CS8618: Non nullable field _name is not initialized. Consider declare the field as nullable type
+dotnet_diagnostic.CS8618.severity = none
+# CS8602: Dereference of a possibly null reference.
+dotnet_diagnostic.CS8602.severity = none
+# CS8629: Nullable value type may be null
+dotnet_diagnostic.CS8629.severity = none
+# warning CS8601: Possible null reference assignment.
+dotnet_diagnostic.CS8601.severity = none
+# warning CS8600: Converting null literal or possible null value to non-nullable type.
+dotnet_diagnostic.CS8600.severity = none
+# warning CS8604: Possible null reference argument for parameter
+dotnet_diagnostic.CS8604.severity = none
+# warning CS8625: Cannot convert null literal to non-nullable reference type.
+dotnet_diagnostic.CS8625.severity = none
+# CS8603: Possible null reference return.
+dotnet_diagnostic.CS8603.severity = none
+#warning CS1591: Mi ssing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
