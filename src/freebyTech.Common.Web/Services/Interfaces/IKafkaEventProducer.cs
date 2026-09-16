@@ -35,7 +35,7 @@ public interface IKafkaEventProducer
   /// <param name="message">The message to post</param>
   /// <typeparam name="K"></typeparam>
   /// <typeparam name="T">The message type</typeparam>
-  void ProduceMessages<K, T>(Dictionary<K, T> messages);
+  void ProduceMessages<K, T>(Dictionary<K, T> messages) where K : notnull;
 
   /// <summary>
   /// Blocks until producer has pushed all of its messages to the broker.

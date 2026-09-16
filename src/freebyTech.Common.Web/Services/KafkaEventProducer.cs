@@ -71,7 +71,7 @@ public class KafkaEventProducer : KafkaMessengerBase, IKafkaEventProducer, IDisp
   }
 
   /// <inheritdoc />
-  public void ProduceMessages<K, T>(Dictionary<K, T> messages)
+  public void ProduceMessages<K, T>(Dictionary<K, T> messages) where K : notnull
   {
     var topic = GetTopicName<T>();
 
