@@ -22,6 +22,12 @@ namespace freebyTech.Common.Web.Logging.Interfaces
         long RequestExecutionTime { get; set; }
         double RequestExecutionTimeMinutes { get; set; }
 
+        /// <summary>
+        /// True only when the configured verbosity records request/response bodies. The logging middleware
+        /// uses this to decide whether the response must be diverted through a memory buffer at all.
+        /// </summary>
+        bool CapturesBodies { get; }
+
         #endregion
 
         /// <summary>
@@ -41,6 +47,12 @@ namespace freebyTech.Common.Web.Logging.Interfaces
         /// </summary>
         /// <param name="context"></param>
         /// <param name="responseBody"></param>
+        /// <summary>
+        /// Records the response status code and user WITHOUT a body — the path taken when
+        /// <see cref="CapturesBodies"/> is false and the response streamed straight to the client.
+        /// </summary>
+        void PushResponse(HttpContext context);
+
         Task PushResponseAsync(HttpContext context, MemoryStream responseBody);
 
         void LogCompletedRequest();
